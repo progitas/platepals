@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { posts } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { createSignedUrl } from "~/supabase/image-service";
 
 export const postRouter = createTRPCRouter({
   hello: publicProcedure
@@ -14,10 +14,11 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ name: z.string().min(1), imageUrl: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db.insert(posts).values({
         name: input.name,
+        imageUrl: input.imageUrl
       });
     }),
 
@@ -25,16 +26,9 @@ export const postRouter = createTRPCRouter({
     const post = await ctx.db.query.posts.findFirst({
       orderBy: (posts, { desc }) => [desc(posts.createdAt)],
     });
-
-    return post ?? null;
+    if(!post) return null
+    if(!post?.imageUrl) return post
+    const signedUrl = await createSignedUrl(post.imageUrl)
+    return {...post, imageUrl: signedUrl }
   }),
-
-  uploadImage: publicProcedure
-    .input(z.object({ imageUrl: z.string().min(1), postId: z.number().min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db.update(posts).set({
-        imageUrl: input.imageUrl,
-      }).where(eq(posts.id, input.postId));
-    }),
-
 });
