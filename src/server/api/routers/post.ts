@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { posts } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export const postRouter = createTRPCRouter({
   hello: publicProcedure
@@ -27,4 +28,13 @@ export const postRouter = createTRPCRouter({
 
     return post ?? null;
   }),
+
+  uploadImage: publicProcedure
+    .input(z.object({ imageUrl: z.string().min(1), postId: z.number().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.update(posts).set({
+        imageUrl: input.imageUrl,
+      }).where(eq(posts.id, input.postId));
+    }),
+
 });
