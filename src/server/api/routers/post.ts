@@ -14,11 +14,13 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: publicProcedure
-    .input(z.object({ name: z.string().min(1), imageUrl: z.string().optional() }))
+    .input(
+      z.object({ name: z.string().min(1), imageUrl: z.string().optional() }),
+    )
     .mutation(async ({ ctx, input }) => {
       await ctx.db.insert(posts).values({
         name: input.name,
-        imageUrl: input.imageUrl
+        imageUrl: input.imageUrl,
       });
     }),
 
@@ -26,9 +28,9 @@ export const postRouter = createTRPCRouter({
     const post = await ctx.db.query.posts.findFirst({
       orderBy: (posts, { desc }) => [desc(posts.createdAt)],
     });
-    if(!post) return null
-    if(!post?.imageUrl) return post
-    const signedUrl = await createSignedUrl(post.imageUrl)
-    return {...post, imageUrl: signedUrl }
+    if (!post) return null;
+    if (!post?.imageUrl) return post;
+    const signedUrl = await createSignedUrl(post.imageUrl);
+    return { ...post, imageUrl: signedUrl };
   }),
 });

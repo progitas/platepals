@@ -13,7 +13,7 @@ export async function uploadImage(file: File) {
 
 export async function createSignedUrl(url: string) {
   const { data } = await supabase.storage
-    .from('post-images')
-    .createSignedUrl(url, 3600)
- return data?.signedUrl
+    .from("post-images")
+    .createSignedUrl(url, 3600);
+  return data?.signedUrl;
 }
