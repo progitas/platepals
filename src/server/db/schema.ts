@@ -23,14 +23,15 @@ export const posts = createTable(
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     name: varchar("name", { length: 256 }),
+    imageUrl: varchar("imageUrl"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );

@@ -1,50 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { api } from "~/trpc/react";
+import Image from "next/image";
 
 export function LatestPost() {
   const [latestPost] = api.post.getLatest.useSuspenseQuery();
 
-  const utils = api.useUtils();
-  const [name, setName] = useState("");
-  const createPost = api.post.create.useMutation({
-    onSuccess: async () => {
-      await utils.post.invalidate();
-      setName("");
-    },
-  });
-
   return (
     <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          createPost.mutate({ name });
-        }}
-        className="flex flex-col gap-2"
-      >
-        <input
-          type="text"
-          placeholder="Title"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-full px-4 py-2 text-black"
-        />
-        <button
-          type="submit"
-          className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-          disabled={createPost.isPending}
+      <p className="truncate">Your most recent post: {latestPost?.name}</p>
+      {latestPost && (
+        <div
+          className={
+            "mb-2 flex h-[200px] w-[320px] max-w-xs flex-col gap-4 rounded-xl bg-white/30 p-4 hover:bg-white/40"
+          }
         >
-          {createPost.isPending ? "Submitting..." : "Submit"}
-        </button>
-      </form>
+          <div>
+            <p className={"text-xl font-bold text-[#f08080]"}>
+              {latestPost.name}
+            </p>
+            {latestPost.imageUrl && (
+              <Image
+                src={latestPost.imageUrl}
+                width={"100"}
+                height={"100"}
+                alt={"image"}
+              ></Image>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
